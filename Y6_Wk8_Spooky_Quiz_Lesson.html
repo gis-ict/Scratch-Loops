@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Y6 Spooky Quiz Lesson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --maroon:#7a1f2b; --maroon-d:#5a1520; --ink:#1f1d24; --muted:#5b5866; --bg:#fbf7f2; --card:#ffffff;
+  --line:#e7dfd6; --ok:#1f8a4c; --bad:#c0392b; --pumpkin:#f28c28;
+  --motion:#4C97FF; --looks:#9966FF; --control:#FFAB19; --sensing:#5CB1D6; --vars:#FF8C1A; --events:#FFBF00; --ops:#59C059; --pen:#0fbd8c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:19px;line-height:1.5}
+button{font:inherit;cursor:pointer}
+header{position:sticky;top:0;z-index:10;background:var(--maroon);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.bar{display:flex;align-items:center;gap:12px;padding:10px 16px;max-width:1200px;margin:0 auto}
+.bar h1{font-size:18px;margin:0;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.timer{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border-radius:10px;padding:4px 8px}
+.timer span{font-variant-numeric:tabular-nums;font-weight:700;min-width:54px;text-align:center}
+.timer button,.iconbtn{background:#fff;color:var(--maroon);border:0;border-radius:8px;padding:4px 10px;font-weight:700;font-size:15px}
+.timer.done span{color:#ffd166}
+nav.steps{display:flex;gap:6px;overflow-x:auto;padding:0 16px 10px;max-width:1200px;margin:0 auto;scrollbar-width:thin}
+nav.steps button{flex:0 0 auto;border:2px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:5px 12px;font-size:15px;white-space:nowrap}
+nav.steps button.on{background:#fff;color:var(--maroon);border-color:#fff;font-weight:700}
+nav.steps button.seen:not(.on){border-color:#ffd166}
+.progress{height:5px;background:rgba(255,255,255,.2)}
+.progress i{display:block;height:100%;background:#ffd166;width:0;transition:width .3s}
+main{max-width:1100px;margin:0 auto;padding:22px 16px 110px}
+section{display:none;animation:fade .25s}
+section.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+h2{font-size:32px;margin:0 0 4px;color:var(--maroon)}
+.sub{color:var(--muted);margin:0 0 18px}
+.mins{display:inline-block;background:#f3e6e8;color:var(--maroon);border-radius:999px;padding:2px 12px;font-size:15px;font-weight:700;margin-bottom:8px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.card h3{margin:0 0 6px;font-size:21px}
+.card p{margin:6px 0}
+.big{font-size:22px}
+.btn{background:var(--maroon);color:#fff;border:0;border-radius:12px;padding:10px 18px;font-weight:700}
+.btn.alt{background:#fff;color:var(--maroon);border:2px solid var(--maroon)}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+/* Scratch-style blocks */
+.script{display:inline-flex;flex-direction:column;gap:3px;margin:6px 0;font-size:16px}
+.blk{display:inline-block;color:#fff;border-radius:6px;padding:5px 10px;font-weight:700;width:max-content;max-width:100%;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18);transition:transform .15s,box-shadow .15s}
+.blk.hat{border-radius:16px 16px 6px 6px;padding-top:9px}
+.blk .v{background:#fff;color:#333;border-radius:999px;padding:0 8px;margin:0 2px;font-weight:700}
+.blk .r{background:rgba(0,0,0,.18);border-radius:999px;padding:0 8px;margin:0 2px}
+.in{margin-left:22px;display:flex;flex-direction:column;gap:3px;border-left:12px solid var(--control);padding:3px 0 3px 4px;border-radius:0 0 0 6px}
+.in.sens{border-color:var(--sensing)}
+.ev{background:var(--events);color:#3b2a00}.mo{background:var(--motion)}.lo{background:var(--looks)}.co{background:var(--control);color:#3b2a00}
+.se{background:var(--sensing)}.va{background:var(--vars)}.op{background:var(--ops)}.pe{background:var(--pen)}
+.blk.hot{transform:translateX(6px);box-shadow:0 0 0 4px #ffd166}
+/* quiz */
+.opts{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:12px}
+.opt{text-align:left;background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px 14px}
+.opt:hover{border-color:var(--maroon)}
+.opt.right{border-color:var(--ok);background:#e9f7ef}
+.opt.wrong{border-color:var(--bad);background:#fdecea}
+.feedback{min-height:28px;margin-top:10px;font-weight:700}
+.monitors{display:flex;gap:10px;flex-wrap:wrap}
+.mon{display:inline-flex;align-items:center;gap:8px;background:#f2f2f2;border:1px solid #ccc;border-radius:6px;padding:4px 6px;font-weight:700;font-size:16px}
+.mon b{background:var(--vars);color:#fff;border-radius:4px;padding:1px 10px;min-width:34px;text-align:center;transition:transform .2s}
+.mon b.pop{transform:scale(1.35)}
+/* pumpkin game */
+.stage{position:relative;height:340px;background:linear-gradient(#2b1d3a,#4b2b55);border-radius:14px;overflow:hidden;user-select:none}
+.stage .thing{position:absolute;font-size:52px;line-height:1;border:0;background:none;padding:0;transition:transform .1s}
+.stage .thing:active{transform:scale(.85)}
+.stage .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff;text-align:center;padding:16px;gap:12px}
+.stage .msg h3{font-size:30px;margin:0}
+.two{display:grid;gap:16px;grid-template-columns:1.4fr 1fr}
+@media (max-width:820px){.two{grid-template-columns:1fr}h2{font-size:26px}}
+@media (max-width:600px){.bar{flex-wrap:wrap}.bar h1{flex-basis:100%;font-size:15px}#fs{display:none}html,body{font-size:17px}}
+/* spooky demo */
+.sprite{font-size:64px;line-height:1}
+.bubble{position:relative;background:#fff;border:2px solid #ccc;border-radius:16px;padding:10px 14px;min-height:48px;font-size:20px;margin:6px 0 10px}
+.askbox{display:flex;gap:8px;background:#fff;border:2px solid var(--sensing);border-radius:999px;padding:6px 6px 6px 14px}
+.askbox input{flex:1;border:0;font:inherit;outline:none;min-width:0}
+.askbox button{background:var(--sensing);color:#fff;border:0;border-radius:999px;padding:6px 16px;font-weight:700}
+.reveal{display:none;margin-top:8px;background:#fff7e0;border-radius:10px;padding:8px 12px;font-weight:700}
+.reveal.show{display:block}
+/* checklist */
+.check{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.check input{width:26px;height:26px;margin-top:3px;accent-color:var(--ok);flex:0 0 auto}
+.check.done{background:#eef8f1;border-color:#bfe3cc}
+.check .t{font-weight:700}
+.tag{display:inline-block;border-radius:6px;padding:1px 8px;font-size:14px;font-weight:700;color:#fff;margin-right:4px}
+details.teacher{margin-top:20px;background:#f3eee8;border-radius:12px;padding:10px 14px;color:#3d3943;font-size:16px}
+details.teacher summary{cursor:pointer;font-weight:700;color:var(--maroon)}
+.foot{position:fixed;bottom:0;left:0;right:0;background:rgba(251,247,242,.96);border-top:1px solid var(--line);z-index:9}
+.foot .in2{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.foot .where{color:var(--muted);font-size:15px;text-align:center;flex:1}
+.map{counter-reset:s;display:grid;gap:8px}
+.map button{display:flex;justify-content:space-between;align-items:center;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.map button:hover{border-color:var(--maroon)}
+.map b{color:var(--maroon)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:#fff;border:2px solid var(--line);border-radius:999px;padding:6px 14px}
+.chip.on{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+kbd{background:#fff;border:1px solid #ccc;border-bottom-width:3px;border-radius:6px;padding:0 6px;font-size:15px}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>Year 6 Digital Technologies · Week 8 · Spooky Quiz</h1>
+    <div class="timer" id="timer" title="Timer for this part of the lesson">
+      <span id="tleft">8:00</span>
+      <button id="tgo" aria-label="Start or pause timer">Start</button>
+      <button id="treset" aria-label="Reset timer">Reset</button>
+    </div>
+    <button class="iconbtn" id="fs" title="Full screen">Full screen</button>
+  </div>
+  <nav class="steps" id="steps" aria-label="Lesson parts"></nav>
+  <div class="progress"><i id="prog"></i></div>
+</header>
+
+<main>
+
+<!-- 0 START -->
+<section data-title="Start" data-min="2">
+  <span class="mins">2 min</span>
+  <h2>Today's lesson</h2>
+  <p class="sub">Last week you finished debugging Loop Lab. Today: quick recap, then we add <b>score</b>, <b>lives</b> and <b>user input</b> to make a Halloween quiz game.</p>
+  <div class="two">
+    <div class="map" id="map"></div>
+    <div class="card">
+      <h3>By the end of today you can...</h3>
+      <p>✅ explain what a <b>variable</b> is (score, lives)</p>
+      <p>✅ use <b>ask and wait</b> and the <b>answer</b> block (user input)</p>
+      <p>✅ use <b>if then else</b> to check an answer (branch)</p>
+      <p>✅ use a <b>forever</b> loop to check for Game Over (loop)</p>
+      <p style="margin-top:14px;color:var(--muted);font-size:16px">How to move: click the buttons at the top, use <b>Next</b> at the bottom, or press <kbd>→</kbd> and <kbd>←</kbd>.</p>
+    </div>
+  </div>
+  <details class="teacher"><summary>Teacher notes</summary>
+  Timers are per part: press Start when the part begins. The page remembers where you are if the browser is refreshed. Pairs: driver and helper, swap at every part marked "Swap".
+  </details>
+</section>
+
+<!-- 1 RECAP -->
+<section data-title="1. Loop Lab recap" data-min="6">
+  <span class="mins">6 min</span>
+  <h2>Loop Lab recap</h2>
+  <p class="sub">One sprite, one big idea. Click a card to show the idea.</p>
+  <div class="grid" id="recap"></div>
+  <details class="teacher"><summary>Teacher notes</summary>
+  Ask a pair to say the idea before you click. Dancer 27 → 7 blocks. PenBot: sides × turn = 360. Guard: repeat 40 stops at 200 steps, forever does not stop; rotation style left-right. Ghost: if must be inside forever. Player: forever keeps checking the keys.
+  </details>
+</section>
+
+<!-- 2 RECAP GAME -->
+<section data-title="2. Recap game" data-min="7">
+  <span class="mins">7 min</span>
+  <h2>Recap game</h2>
+  <p class="sub">This quiz uses two variables: <b>score</b> and <b>lives</b>. Watch them change. That is today's lesson.</p>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="monitors"><span class="mon">score <b id="qScore">0</b></span><span class="mon">lives <b id="qLives">3</b></span></div>
+      <span id="qNum" style="color:var(--muted)">Question 1 of 8</span>
+    </div>
+    <p class="big" id="qText" style="margin-top:14px"></p>
+    <div class="opts" id="qOpts"></div>
+    <div class="feedback" id="qFb"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="qNext" disabled>Next question</button><button class="btn alt" id="qAgain">Start again</button></div>
+  </div>
+  <details class="teacher"><summary>Teacher notes</summary>
+  Play as a whole class: pairs show fingers 1 to 4, then one student clicks. When a life is lost, ask: "Which block just ran?" (change lives by -1).
+  </details>
+</section>
+
+<!-- 3 VARIABLES -->
+<section data-title="3. Score and lives" data-min="8">
+  <span class="mins">8 min</span>
+  <h2>Variables: score and lives</h2>
+  <p class="sub">A variable is a labelled box. The <b>label</b> stays the same. The <b>value</b> inside changes.</p>
+  <div class="grid">
+    <div class="card">
+      <h3>1. Make the boxes</h3>
+      <p>Variables (orange) → <b>Make a Variable</b> → type <b>score</b>. Do it again for <b>lives</b>.</p>
+      <div class="monitors" style="margin-top:8px"><span class="mon">score <b>0</b></span><span class="mon">lives <b>3</b></span></div>
+    </div>
+    <div class="card">
+      <h3>2. Start every game fresh</h3>
+      <div class="script">
+        <span class="blk ev hat">when green flag clicked</span>
+        <span class="blk va">set <span class="r">score</span> to <span class="v">0</span></span>
+        <span class="blk va">set <span class="r">lives</span> to <span class="v">3</span></span>
+      </div>
+      <p style="font-size:16px;color:var(--muted)">Forget this and the score starts from the old game.</p>
+    </div>
+    <div class="card">
+      <h3>3. Change the value</h3>
+      <div class="script">
+        <span class="blk va">change <span class="r">score</span> by <span class="v">1</span></span>
+        <span class="blk va">change <span class="r">lives</span> by <span class="v">-1</span></span>
+      </div>
+      <p style="font-size:16px;color:var(--muted)"><b>set</b> = replace the value. <b>change</b> = add to it.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>Predict first</h3>
+    <div id="predicts"></div>
+  </div>
+  <details class="teacher"><summary>Teacher notes</summary>
+  Link to the envelope game from last week: set = throw out the old slip and put in a new one; change = add to the slip. Pairs say their prediction out loud before clicking Show answer.
+  </details>
+</section>
+
+<!-- 4 PUMPKIN GAME -->
+<section data-title="4. Pumpkin game" data-min="5">
+  <span class="mins">5 min</span>
+  <h2>Pumpkin game</h2>
+  <p class="sub">Click 🎃 for points. Do NOT click 👻. Watch which block lights up each time.</p>
+  <div class="two">
+    <div>
+      <div class="stage" id="stage">
+        <div class="msg" id="stageMsg"><h3>🎃 Pumpkin game</h3><p>20 seconds. 3 lives.</p><button class="btn" id="pgStart">Start game</button></div>
+      </div>
+      <div class="monitors" style="margin-top:10px"><span class="mon">score <b id="pScore">0</b></span><span class="mon">lives <b id="pLives">3</b></span><span class="mon">timer <b id="pTime" style="background:#888">20</b></span></div>
+    </div>
+    <div class="card">
+      <h3>The code behind it</h3>
+      <div class="script">
+        <span class="blk ev hat" id="c1">when green flag clicked</span>
+        <span class="blk va" id="c2">set <span class="r">score</span> to <span class="v">0</span></span>
+        <span class="blk va" id="c3">set <span class="r">lives</span> to <span class="v">3</span></span>
+      </div>
+      <div class="script">
+        <span class="blk ev hat" id="c4">when pumpkin clicked</span>
+        <span class="blk va" id="c5">change <span class="r">score</span> by <span class="v">1</span></span>
+      </div>
+      <div class="script">
+        <span class="blk ev hat" id="c6">when ghost clicked</span>
+        <span class="blk va" id="c7">change <span class="r">lives</span> by <span class="v">-1</span></span>
+      </div>
+      <div class="script">
+        <span class="blk ev hat">when green flag clicked</span>
+        <span class="blk co" id="c8">forever</span>
+        <div class="in">
+          <span class="blk co" id="c9">if <span class="r">lives = 0</span> then</span>
+          <div class="in"><span class="blk co" id="c10">stop all</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <details class="teacher"><summary>Teacher notes</summary>
+  Two or three students play on the projector. Stop after a round and ask: "Where is the loop? Why does Game Over need forever and not repeat 10?"
+  </details>
+</section>
+
+<!-- 5 ASK AND ANSWER -->
+<section data-title="5. Ask and answer" data-min="7">
+  <span class="mins">7 min</span>
+  <h2>User input: ask and answer</h2>
+  <p class="sub">User input = the player types something and the program uses it.</p>
+  <div class="grid">
+    <div class="card">
+      <h3>1. Ask</h3>
+      <div class="script"><span class="blk se">ask <span class="v">What is your name?</span> and wait</span></div>
+      <p>A box appears. The game waits until the player presses Enter.</p>
+    </div>
+    <div class="card">
+      <h3>2. Answer</h3>
+      <div class="script"><span class="blk se r" style="border-radius:999px">answer</span></div>
+      <p>Scratch puts what they typed into <b>answer</b>. It is a variable Scratch made for you. It only keeps the <b>newest</b> answer.</p>
+    </div>
+    <div class="card">
+      <h3>3. Use it</h3>
+      <div class="script"><span class="blk lo">say <span class="r" style="background:var(--ops)">join <span class="v">Welcome, </span> <span class="v" style="background:var(--sensing);color:#fff">answer</span></span> for <span class="v">2</span> seconds</span></div>
+      <p><b>join</b> (green, Operators) glues two pieces of text together.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>4. Check the answer: if then else</h3>
+    <div class="two">
+      <div class="script">
+        <span class="blk se">ask <span class="v">How many legs does a spider have?</span> and wait</span>
+        <span class="blk co">if <span class="r" style="background:var(--ops)"><span class="v" style="background:var(--sensing);color:#fff">answer</span> = <span class="v">8</span></span> then</span>
+        <div class="in">
+          <span class="blk va">change <span class="r">score</span> by <span class="v">1</span></span>
+          <span class="blk lo">say <span class="v">Correct!</span> for <span class="v">1</span> seconds</span>
+        </div>
+        <span class="blk co">else</span>
+        <div class="in">
+          <span class="blk va">change <span class="r">lives</span> by <span class="v">-1</span></span>
+          <span class="blk lo">say <span class="v">Wrong!</span> for <span class="v">1</span> seconds</span>
+        </div>
+      </div>
+      <div>
+        <p><b>Input</b> → the player types.<br><b>Variable</b> → answer, score, lives.<br><b>Branch</b> → if then else picks one path.</p>
+        <p style="font-size:16px;color:var(--muted)">Tip: use questions with number answers or one-word answers. "eight" is not the same as "8".</p>
+      </div>
+    </div>
+  </div>
+  <details class="teacher"><summary>Teacher notes</summary>
+  Demo live in Scratch: ask a student's name and say it back. Show that Scratch ignores capital letters (Ghost = ghost) but not spelling.
+  </details>
+</section>
+
+<!-- 6 SPOOKY DEMO -->
+<section data-title="6. Try the quiz" data-min="5">
+  <span class="mins">5 min</span>
+  <h2>Try the spooky quiz</h2>
+  <p class="sub">This is the game you will build. Play it, and watch the code light up.</p>
+  <div class="two">
+    <div class="card">
+      <div class="monitors"><span class="mon">score <b id="sScore">0</b></span><span class="mon">lives <b id="sLives">3</b></span><span class="mon">answer <b id="sAns" style="background:var(--sensing)">&nbsp;</b></span></div>
+      <div style="display:flex;gap:14px;align-items:flex-end;margin-top:12px">
+        <div class="sprite" id="sSprite">🧙</div>
+        <div style="flex:1"><div class="bubble" id="sBubble">Press Start.</div></div>
+      </div>
+      <form class="askbox" id="sForm" style="visibility:hidden"><input id="sInput" autocomplete="off" aria-label="Your answer"><button>✓</button></form>
+      <div class="row" style="margin-top:12px"><button class="btn" id="sStart">Start</button></div>
+    </div>
+    <div class="card">
+      <h3>The code</h3>
+      <div class="script" style="font-size:14px">
+        <span class="blk ev hat">when green flag clicked</span>
+        <span class="blk va" id="d1">set score to 0 · set lives to 3</span>
+        <span class="blk se" id="d2">ask <span class="v">What is your name?</span> and wait</span>
+        <span class="blk lo" id="d3">say join Welcome, answer</span>
+        <span class="blk se" id="d4">ask <span class="v">question</span> and wait</span>
+        <span class="blk co" id="d5">if answer = correct then</span>
+        <div class="in"><span class="blk va" id="d6">change score by 1</span></div>
+        <span class="blk co" id="d7">else</span>
+        <div class="in"><span class="blk va" id="d8">change lives by -1</span></div>
+        <span class="blk co" id="d9">if lives = 0 then stop all</span>
+      </div>
+    </div>
+  </div>
+  <details class="teacher"><summary>Teacher notes</summary>
+  One volunteer types, the class shouts predictions: "What will score be after this?" Get one answer wrong on purpose so they see the else path.
+  </details>
+</section>
+
+<!-- 7 BUILD -->
+<section data-title="7. Build (Swap)" data-min="15">
+  <span class="mins">15 min</span>
+  <h2>Build your spooky quiz in Scratch</h2>
+  <p class="sub">Tick each step when it works. Swap driver after step 4.</p>
+  <div class="card" style="margin-bottom:14px">
+    <h3>Plan first (1 minute, on paper)</h3>
+    <p>Write 3 questions with short answers. Example: <i>How many legs does a spider have? → 8</i></p>
+  </div>
+  <div id="checks"></div>
+  <div class="card" style="margin-top:6px">
+    <h3>Finished early?</h3>
+    <p>⭐ Add a 4th question.</p>
+    <p>⭐⭐ Add a spooky sound when the answer is wrong.</p>
+    <p>⭐⭐⭐ At the end: <b>if score = 3 then</b> say "Full marks. Big aura." else say "Try again."</p>
+  </div>
+  <div class="row" style="margin-top:10px"><button class="btn alt" id="clearChecks">Clear ticks</button></div>
+  <details class="teacher"><summary>Teacher notes</summary>
+  Circulate with one question: "Where is your input, variable, branch and loop?" Common bugs: score not set to 0; answer typed with a space; forgot to drag the forever-if script; if block placed after the say.
+  </details>
+</section>
+
+<!-- 8 TEST + EXIT -->
+<section data-title="8. Test and exit" data-min="5">
+  <span class="mins">5 min</span>
+  <h2>Test and exit</h2>
+  <p class="sub">Swap computers with the pair next to you. Play their quiz.</p>
+  <div class="two">
+    <div class="card">
+      <h3>Our class criteria</h3>
+      <p style="font-size:16px;color:var(--muted)">Vote as a class. Pick 3. Tester says Yes or Not yet for each.</p>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="card">
+      <h3>Exit questions</h3>
+      <p>Click to show the answer after pairs say theirs.</p>
+      <div id="exit"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>Save</h3>
+    <p class="big">File → Save to your computer → <b>Y6_Surname_SpookyQuiz</b></p>
+    <p>Next time: we finish and decorate it for the Halloween Party on Friday 30 October.</p>
+  </div>
+  <details class="teacher"><summary>Teacher notes</summary>
+  The criteria vote is the first taste of negotiated criteria. Write the 3 chosen ones on the board and keep them for next lesson.
+  </details>
+</section>
+
+</main>
+
+<div class="foot"><div class="in2">
+  <button class="btn alt" id="prev">← Back</button>
+  <div class="where" id="where"></div>
+  <button class="btn" id="next">Next →</button>
+</div></div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem('y6w8_'+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('y6w8_'+k,JSON.stringify(v))}catch(e){}}};
+const secs=$$('main section');
+let cur=Math.min(store.get('cur',0),secs.length-1), seen=new Set(store.get('seen',[0]));
+
+/* ---------- navigation ---------- */
+const nav=$('#steps'), map=$('#map');
+secs.forEach((s,i)=>{
+  const b=document.createElement('button'); b.textContent=s.dataset.title; b.onclick=()=>go(i); nav.appendChild(b);
+  if(i>0){const m=document.createElement('button'); m.innerHTML=`<span>${s.dataset.title}</span><b>${s.dataset.min} min</b>`; m.onclick=()=>go(i); map.appendChild(m);}
+});
+function go(i){
+  cur=Math.max(0,Math.min(secs.length-1,i)); seen.add(cur);
+  secs.forEach((s,k)=>s.classList.toggle('on',k===cur));
+  $$('#steps button').forEach((b,k)=>{b.classList.toggle('on',k===cur);b.classList.toggle('seen',seen.has(k))});
+  nav.children[cur].scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});
+  $('#prog').style.width=(cur/(secs.length-1)*100)+'%';
+  $('#prev').disabled=cur===0; $('#next').disabled=cur===secs.length-1;
+  $('#where').textContent=`Part ${cur} of ${secs.length-1} · ${secs[cur].dataset.min} min`;
+  if(cur===0) $('#where').textContent='Start';
+  window.scrollTo({top:0});
+  resetTimer(); store.set('cur',cur); store.set('seen',[...seen]);
+}
+$('#prev').onclick=()=>go(cur-1); $('#next').onclick=()=>go(cur+1);
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;
+  if(e.key==='ArrowRight')go(cur+1); if(e.key==='ArrowLeft')go(cur-1);
+});
+$('#fs').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}};
+
+/* ---------- timer ---------- */
+let left=0,tick=null;
+function show(){const m=Math.floor(Math.abs(left)/60),s=Math.abs(left)%60;$('#tleft').textContent=(left<0?'+':'')+m+':'+String(s).padStart(2,'0');$('#timer').classList.toggle('done',left<=0)}
+function resetTimer(){clearInterval(tick);tick=null;left=(+secs[cur].dataset.min)*60;$('#tgo').textContent='Start';show()}
+$('#tgo').onclick=()=>{if(tick){clearInterval(tick);tick=null;$('#tgo').textContent='Start'}else{tick=setInterval(()=>{left--;show()},1000);$('#tgo').textContent='Pause'}};
+$('#treset').onclick=resetTimer;
+
+/* ---------- recap cards ---------- */
+const recap=[
+ ['💃','Dancer','27 blocks became 7.','A <b>repeat</b> loop replaces copy-paste. Fewer blocks = easier to fix. This is <b>refactoring</b>.','<span class="blk co">repeat <span class="v">8</span></span>'],
+ ['✏️','PenBot','Shapes with the pen.','<b>sides × turn = 360</b>. Square: repeat 4, turn 90. Hexagon: repeat 6, turn 60.','<span class="blk co">repeat <span class="v">6</span></span>'],
+ ['🤖','Guard','It stopped in the middle.','<b>repeat 40</b> stops. <b>forever</b> never stops. <b>set rotation style left-right</b> stops it going upside down.','<span class="blk co">forever</span>'],
+ ['👻','Ghost','The chase.','<b>forever + if</b> = keep checking. The if must be <b>inside</b> the forever, or it checks only once.','<span class="blk co">if <span class="r">touching Player?</span> then</span>'],
+ ['🙂','Player','Arrow keys.','<b>forever</b> checks the keys again and again. With repeat 10 the keys would stop working.','<span class="blk se">key <span class="v">right arrow</span> pressed?</span>'],
+];
+$('#recap').innerHTML=recap.map(([e,n,h,idea,blk],i)=>`<button class="card" style="text-align:left;cursor:pointer" data-i="${i}"><h3>${e} ${n}</h3><p>${h}</p><div class="script">${blk}</div><div class="reveal">${idea}</div></button>`).join('');
+$$('#recap .card').forEach(c=>c.onclick=()=>c.querySelector('.reveal').classList.toggle('show'));
+
+/* ---------- recap quiz with score/lives ---------- */
+const Q=[
+ ['Which block repeats a set number of times?',['forever','repeat 10','wait 1 seconds','say Hello'],1],
+ ['The Guard used repeat 40 and stopped. What was the fix?',['Add another Guard','Change repeat to forever','Delete the flag','Change move 5 to 50'],1],
+ ['PenBot: a square turns how many degrees each time?',['45','67 (six seven)','90','180'],2],
+ ['Where must "if touching Player" go for the Ghost?',['Inside the forever','Outside the forever','In the bin','At the very top'],0],
+ ['Changing a long chain into a loop is called...',['Mewing','Debugging','Refactoring','Sensing'],2],
+ ['The Dancer went from 27 blocks to 7. Why is that better?',['It looks more sigma','Fewer places to fix','It runs slower','The cat likes it'],1],
+ ['Which block stops a sprite going upside down?',['next costume','set rotation style left-right','hide','clear'],1],
+ ['This quiz just took a life from you. Which block ran?',['change lives by -1','set lives to 3','change score by 1','Fanum tax'],0],
+];
+let qi=0,qs=0,ql=3,qDone=false;
+function pop(el,v){el.textContent=v;el.classList.add('pop');setTimeout(()=>el.classList.remove('pop'),200)}
+function qRender(){
+  qDone=false;$('#qFb').textContent='';$('#qNext').disabled=true;
+  if(qi>=Q.length||ql<=0){
+    $('#qText').innerHTML=ql<=0?'💀 Game over. <b>lives = 0</b>, so the game stopped. That is an <b>if</b> inside a <b>forever</b>.':`🎉 Finished! Final score: <b>${qs}</b> out of ${Q.length}.`;
+    $('#qOpts').innerHTML='';$('#qNum').textContent='';return;
+  }
+  const [t,o]=Q[qi];$('#qNum').textContent=`Question ${qi+1} of ${Q.length}`;$('#qText').textContent=t;
+  $('#qOpts').innerHTML=o.map((x,k)=>`<button class="opt" data-k="${k}">${'ABCD'[k]}. ${x}</button>`).join('');
+  $$('#qOpts .opt').forEach(b=>b.onclick=()=>{
+    if(qDone)return;qDone=true;const k=+b.dataset.k,c=Q[qi][2];
+    $$('#qOpts .opt')[c].classList.add('right');
+    if(k===c){qs++;pop($('#qScore'),qs);$('#qFb').innerHTML='<span style="color:var(--ok)">Correct! change score by 1</span>'}
+    else{b.classList.add('wrong');ql--;pop($('#qLives'),ql);$('#qFb').innerHTML='<span style="color:var(--bad)">Not quite. change lives by -1</span>'}
+    $('#qNext').disabled=false;$('#qNext').textContent=(ql<=0||qi===Q.length-1)?'See result':'Next question';
+  });
+}
+$('#qNext').onclick=()=>{qi++;qRender()};
+$('#qAgain').onclick=()=>{qi=0;qs=0;ql=3;$('#qScore').textContent=0;$('#qLives').textContent=3;qRender()};
+qRender();
+
+/* ---------- predictions ---------- */
+const P=[
+ ['set score to 0 → change score by 1 → change score by 1','2'],
+ ['set lives to 3 → change lives by -1','2'],
+ ['set score to 5 → set score to 0','0 (set replaces the value)'],
+ ['Last game score was 7. We forgot set score to 0. Collect 1 coin.','8 (it started from the old score)'],
+];
+$('#predicts').innerHTML=P.map(([q,a])=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div class="row" style="justify-content:space-between"><span>${q} → <b>score / lives = ?</b></span><button class="btn alt" style="padding:4px 12px">Show answer</button></div><div class="reveal">${a}</div></div>`).join('');
+$$('#predicts .btn').forEach(b=>b.onclick=()=>b.closest('div').nextElementSibling.classList.toggle('show'));
+
+/* ---------- pumpkin game ---------- */
+const stage=$('#stage');let pS=0,pL=3,pT=20,pRun=false,spawn=null,clock=null;
+function hot(ids){$$('.blk.hot').forEach(b=>b.classList.remove('hot'));ids.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('hot')});clearTimeout(hot.t);hot.t=setTimeout(()=>$$('.blk.hot').forEach(b=>b.classList.remove('hot')),700)}
+function pEnd(why){pRun=false;clearInterval(spawn);clearInterval(clock);$$('#stage .thing').forEach(t=>t.remove());
+  if(why==='lives')hot(['c9','c10']);
+  $('#stageMsg').style.display='flex';
+  $('#stageMsg').innerHTML=`<h3>${why==='lives'?'💀 Game over':'⏰ Time up'}</h3><p>${why==='lives'?'<b>lives = 0</b>, so <b>stop all</b> ran.':'Final <b>score</b>: '+pS}</p><button class="btn" id="pgStart">Play again</button>`;
+  $('#pgStart').onclick=pStart}
+function pStart(){pS=0;pL=3;pT=20;$('#pScore').textContent=0;$('#pLives').textContent=3;$('#pTime').textContent=20;hot(['c1','c2','c3']);
+  $('#stageMsg').style.display='none';pRun=true;
+  spawn=setInterval(()=>{if(!pRun)return;const ghost=Math.random()<.35,t=document.createElement('button');t.className='thing';t.textContent=ghost?'👻':'🎃';t.setAttribute('aria-label',ghost?'ghost':'pumpkin');
+    t.style.left=(Math.random()*(stage.clientWidth-60))+'px';t.style.top=(Math.random()*(stage.clientHeight-60))+'px';
+    t.onclick=()=>{if(!pRun)return;t.remove();if(ghost){pL--;pop($('#pLives'),pL);hot(['c6','c7']);if(pL<=0)pEnd('lives')}else{pS++;pop($('#pScore'),pS);hot(['c4','c5'])}};
+    stage.appendChild(t);setTimeout(()=>t.remove(),1300)},650);
+  clock=setInterval(()=>{pT--;$('#pTime').textContent=pT;if(pT<=0)pEnd('time')},1000)}
+$('#pgStart').onclick=pStart;
+
+/* ---------- spooky quiz demo ---------- */
+const SQ=[['How many legs does a spider have?','8'],['What colour is a pumpkin?','orange'],['How many eyes does a cyclops have?','1']];
+let sStep=-1,sS=0,sL=3,waiting=null;
+function sHot(id){$$('#d1,#d2,#d3,#d4,#d5,#d6,#d7,#d8,#d9').forEach(b=>b.classList.remove('hot'));if(id)document.getElementById(id).classList.add('hot')}
+function say(t){$('#sBubble').innerHTML=t}
+function ask(q,cb){say(q);$('#sForm').style.visibility='visible';$('#sInput').value='';$('#sInput').focus();waiting=cb}
+$('#sForm').onsubmit=e=>{e.preventDefault();if(!waiting)return;const a=$('#sInput').value.trim();$('#sAns').textContent=a||' ';$('#sForm').style.visibility='hidden';const cb=waiting;waiting=null;cb(a)};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function sRun(){
+  $('#sStart').disabled=true;sS=0;sL=3;$('#sScore').textContent=0;$('#sLives').textContent=3;$('#sAns').innerHTML='&nbsp;';$('#sSprite').textContent='🧙';
+  sHot('d1');await wait(700);
+  sHot('d2');const name=await new Promise(r=>ask('What is your name?',r));
+  sHot('d3');say('Welcome, '+(name||'mystery player')+'! 🎃');await wait(1500);
+  for(const [q,c] of SQ){
+    sHot('d4');const a=await new Promise(r=>ask(q,r));
+    sHot('d5');await wait(600);
+    if(a.toLowerCase()===c){sHot('d6');sS++;pop($('#sScore'),sS);say('Correct! ✅')}
+    else{sHot('d8');sL--;pop($('#sLives'),sL);say('Wrong! The answer was '+c+'. ❌')}
+    await wait(1300);
+    sHot('d9');await wait(500);
+    if(sL<=0){$('#sSprite').textContent='💀';say('Game over! lives = 0, so stop all ran.');break}
+  }
+  if(sL>0)say(`Finished, ${name||'player'}! Score: <b>${sS}</b> out of 3.`);
+  sHot(null);$('#sStart').disabled=false;$('#sStart').textContent='Play again';
+}
+$('#sStart').onclick=sRun;
+
+/* ---------- build checklist ---------- */
+const B=[
+ ['Open Scratch and start a new project','Pick a spooky sprite (Witch, Ghost or Bat) and a dark backdrop.',''],
+ ['Make two variables: score and lives','Variables → Make a Variable. Tick the boxes so they show on the stage.','<span class="tag" style="background:var(--vars)">VARIABLE</span>'],
+ ['Start fresh','<span class="blk ev">when green flag clicked</span> <span class="blk va">set score to 0</span> <span class="blk va">set lives to 3</span>','<span class="tag" style="background:var(--vars)">VARIABLE</span>'],
+ ['Ask the player\'s name','<span class="blk se">ask What is your name? and wait</span> then <span class="blk lo">say join Welcome, answer for 2 seconds</span>','<span class="tag" style="background:var(--sensing)">INPUT</span>'],
+ ['Question 1 with if then else','<span class="blk se">ask How many legs does a spider have? and wait</span><br><span class="blk co">if answer = 8 then</span> change score by 1, say Correct! <span class="blk co">else</span> change lives by -1, say Wrong!','<span class="tag" style="background:var(--control)">BRANCH</span> <b>Swap driver now.</b>'],
+ ['Questions 2 and 3','Right-click the ask block → Duplicate. Change the question and the correct answer.','<span class="tag" style="background:var(--control)">BRANCH</span>'],
+ ['Game Over check (new script)','<span class="blk ev">when green flag clicked</span> <span class="blk co">forever</span> <span class="blk co">if lives = 0 then</span> say Game over! then <span class="blk co">stop all</span>','<span class="tag" style="background:var(--control)">LOOP</span>'],
+ ['Test it 2 ways','Play once with all answers right. Play again with all answers wrong. Does Game Over work?',''],
+ ['Save','File → Save to your computer → Y6_Surname_SpookyQuiz',''],
+];
+let done=store.get('checks',[]);
+function cRender(){
+  $('#checks').innerHTML=B.map(([t,d,tag],i)=>`<label class="check ${done.includes(i)?'done':''}"><input type="checkbox" data-i="${i}" ${done.includes(i)?'checked':''}><div><div class="t">Step ${i+1}. ${t}</div><div style="margin-top:4px">${d}</div><div style="margin-top:4px">${tag}</div></div></label>`).join('');
+  $$('#checks input').forEach(c=>c.onchange=()=>{const i=+c.dataset.i;done=c.checked?[...done,i]:done.filter(x=>x!==i);store.set('checks',done);c.closest('.check').classList.toggle('done',c.checked)});
+}
+cRender();
+$('#clearChecks').onclick=()=>{done=[];store.set('checks',done);cRender()};
+
+/* ---------- criteria + exit ---------- */
+const C=['Asks the player\'s name','Score goes up when right','Lives go down when wrong','Game Over works','At least 3 questions','Questions are clear','It looks spooky','It is fun to play'];
+$('#chips').innerHTML=C.map(c=>`<button class="chip">${c}</button>`).join('');
+$$('#chips .chip').forEach(c=>c.onclick=()=>{const on=$$('#chips .chip.on');if(!c.classList.contains('on')&&on.length>=3)return;c.classList.toggle('on')});
+const E=[
+ ['What does the answer block hold?','What the player typed. Only the newest answer.'],
+ ['Why do we set score to 0 at the start?','So every game starts fresh, not from the old score.'],
+ ['Where is the loop in your game?','The forever that keeps checking if lives = 0.'],
+];
+$('#exit').innerHTML=E.map(([q,a])=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><button class="opt" style="width:100%">${q}</button><div class="reveal">${a}</div></div>`).join('');
+$$('#exit .opt').forEach(b=>b.onclick=()=>b.nextElementSibling.classList.toggle('show'));
+
+go(cur);
+})();
+</script>
+</body>
+</html>
